@@ -5,7 +5,7 @@
 }
 
 body {
-  font-family: 'Inter', sans-serif;
+  font-family: Georgia, 'Times New Roman', Times, serif;
   background-color: #FFFEF9;
   color: #5C3D2E;
   overflow: hidden;
@@ -42,11 +42,11 @@ body {
 /* Button styles */
 .rustic-button {
   font-family: 'Caveat', cursive;
-  font-size: 20px;
-  padding: 12px 24px;
-  background-color: #D4845A;
+  font-size: 24px;
+  padding: 14px 28px;
+  background-color: #7C9660;
   color: white;
-  border: 3px solid #8B6F47;
+  border: 3px solid #607A46;
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -68,7 +68,7 @@ body {
 .rustic-button:hover {
   transform: translateY(-2px) rotate(0.5deg);
   box-shadow: 0 6px 8px rgba(92, 61, 46, 0.25);
-  background-color: #E59A73;
+  background-color: #8FAA70;
 }
 
 .rustic-button:active {
@@ -78,7 +78,7 @@ body {
 
 /* Input styles */
 .rustic-input {
-  font-family: 'Inter', sans-serif;
+  font-family: Georgia, 'Times New Roman', Times, serif;
   font-size: 16px;
   padding: 12px 16px;
   background-color: #FFFEF9;
@@ -179,7 +179,7 @@ body {
 .leaflet-container {
   height: 100%;
   width: 100%;
-  font-family: 'Inter', sans-serif;
+  font-family: Georgia, 'Times New Roman', Times, serif;
   background-color: #F5EFE0 !important;
 }
 
@@ -201,10 +201,30 @@ body {
   width: 40px;
   height: 40px;
   cursor: pointer;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
-  transition: transform 0.2s ease;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2))
+          drop-shadow(0 0 2px rgba(255, 255, 255, 0.6))
+          drop-shadow(0 0 8px rgba(139, 71, 137, 0.4));
+  transition: transform 0.2s ease, filter 0.2s ease;
   background: transparent;
   border: none;
+  position: relative;
+}
+
+.fig-marker::before {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 30% 30%,
+    rgba(255, 255, 255, 0.4),
+    rgba(255, 255, 255, 0.1) 40%,
+    rgba(139, 71, 137, 0.2) 70%,
+    transparent
+  );
+  pointer-events: none;
+  z-index: -1;
+  opacity: 0.7;
 }
 
 .fig-marker img {
@@ -216,12 +236,115 @@ body {
 
 .fig-marker:hover {
   transform: scale(1.1) rotate(5deg);
+  filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.3))
+          drop-shadow(0 0 4px rgba(255, 255, 255, 0.8))
+          drop-shadow(0 0 12px rgba(139, 71, 137, 0.6));
+}
+
+.fig-marker:hover::before {
+  opacity: 1;
+}
+
+/* About/Info button */
+.about-button {
+  position: absolute;
+  bottom: 24px;
+  left: 24px;
+  z-index: 500;
+  width: 56px;
+  height: 56px;
+  padding: 0;
+  font-size: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #7C9660;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  border: 3px solid #607A46;
+}
+
+.about-button:hover {
+  background-color: #8FAA70;
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+}
+
+/* Recenter button */
+.recenter-button {
+  position: absolute;
+  top: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 500;
+  font-size: 18px;
+  padding: 12px 24px;
+  background-color: #2E7DFF;
+  border-color: #1E5FCC;
+  box-shadow: 0 4px 12px rgba(46, 125, 255, 0.4);
+  animation: slideDown 0.3s ease;
+}
+
+.recenter-button:hover {
+  background-color: #4A8FFF;
+  transform: translateX(-50%) translateY(-2px);
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+/* User location marker */
+.user-location-marker {
+  background: transparent !important;
+  border: none !important;
+}
+
+.user-location-dot {
+  width: 20px;
+  height: 20px;
+  background: #2E7DFF;
+  border: 3px solid white;
+  border-radius: 50%;
+  box-shadow: 0 0 8px rgba(46, 125, 255, 0.6), 0 2px 4px rgba(0, 0, 0, 0.3);
+  position: relative;
+  z-index: 1;
+}
+
+.user-location-pulse {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: rgba(46, 125, 255, 0.4);
+  animation: locationPulse 2s ease-out infinite;
+}
+
+@keyframes locationPulse {
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(3);
+    opacity: 0;
+  }
 }
 
 /* Center button container */
 .center-button-container {
   position: absolute;
-  bottom: 40px;
+  bottom: 60px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 500;
@@ -233,8 +356,8 @@ body {
 
 /* Add fig button - centered */
 .add-fig-button-center {
-  font-size: 24px;
-  padding: 16px 32px;
+  font-size: 28px;
+  padding: 18px 36px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
@@ -247,8 +370,8 @@ body {
 
 /* Save location button */
 .save-location-button {
-  font-size: 20px;
-  padding: 14px 28px;
+  font-size: 24px;
+  padding: 16px 32px;
   background-color: #7C9660;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
@@ -259,13 +382,14 @@ body {
 
 /* Cancel button */
 .cancel-button {
-  font-size: 18px;
-  padding: 12px 24px;
-  background-color: #C05A3B;
+  font-size: 24px;
+  padding: 16px 32px;
+  background-color: #D4845A;
+  border-color: #8B6F47;
 }
 
 .cancel-button:hover {
-  background-color: #D06A4B;
+  background-color: #E59A73;
 }
 
 /* Pin placement crosshair */
@@ -278,6 +402,21 @@ body {
   height: 40px;
   pointer-events: none;
   z-index: 999;
+  animation: crosshairAppear 0.5s ease-out;
+}
+
+@keyframes crosshairAppear {
+  0% {
+    transform: translate(-50%, -50%) scale(2.5);
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
 }
 
 .crosshair-overlay svg {
@@ -316,7 +455,7 @@ body {
 }
 
 .form-group textarea {
-  font-family: 'Inter', sans-serif;
+  font-family: Georgia, 'Times New Roman', Times, serif;
   font-size: 16px;
   padding: 12px 16px;
   background-color: #FFFEF9;
@@ -346,12 +485,22 @@ body {
   flex: 1;
 }
 
+/* Vertical button group */
+.button-group--vertical {
+  flex-direction: column;
+}
+
+.button-group--vertical button {
+  width: 100%;
+}
+
 .button-secondary {
-  background-color: #607A46;
+  background-color: #D4845A;
+  border-color: #8B6F47;
 }
 
 .button-secondary:hover {
-  background-color: #7C9660;
+  background-color: #E59A73;
 }
 
 /* Header/info banner */
@@ -377,7 +526,7 @@ body {
 }
 
 .user-greeting {
-  font-family: 'Inter', sans-serif;
+  font-family: Georgia, 'Times New Roman', Times, serif;
   font-size: 14px;
   color: #8B6F47;
   display: flex;
@@ -405,7 +554,7 @@ body {
 }
 
 .name-edit-input {
-  font-family: 'Inter', sans-serif;
+  font-family: Georgia, 'Times New Roman', Times, serif;
   font-size: 14px;
   font-weight: bold;
   color: #5C3D2E;
@@ -449,24 +598,48 @@ body {
   }
 
   .center-button-container {
-    bottom: 20px;
+    bottom: 30px;
+    left: 16px;
+    right: 16px;
+    transform: none;
+    width: auto;
   }
 
   .add-fig-button-center {
-    font-size: 18px;
-    padding: 12px 24px;
+    font-size: 26px;
+    padding: 16px 24px;
+    width: 100%;
   }
 
   .button-group-horizontal {
     flex-direction: column;
-    gap: 8px;
+    gap: 10px;
+    width: 100%;
   }
 
   .save-location-button,
   .cancel-button {
-    font-size: 16px;
-    padding: 10px 20px;
+    font-size: 24px;
+    padding: 16px 20px;
     width: 100%;
+  }
+
+  .rustic-button {
+    width: 100%;
+  }
+
+  .about-button {
+    bottom: 16px;
+    left: 16px;
+    width: 50px;
+    height: 50px;
+    font-size: 28px;
+  }
+
+  .recenter-button {
+    top: 16px;
+    font-size: 16px;
+    padding: 10px 18px;
   }
 
   .app-title {

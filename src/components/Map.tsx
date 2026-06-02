@@ -25,6 +25,16 @@ const figIcon = new L.DivIcon({
   popupAnchor: [0, -40],
 });
 
+// Custom user location marker icon
+const userLocationIcon = new L.DivIcon({
+  className: 'user-location-marker',
+  html: `<div class="user-location-dot">
+    <div class="user-location-pulse"></div>
+  </div>`,
+  iconSize: [20, 20],
+  iconAnchor: [10, 10],
+});
+
 interface MapProps {
   figs: FigLocation[];
   onFigClick: (fig: FigLocation) => void;
@@ -45,7 +55,9 @@ const ZoomAdjuster: React.FC<{ isPinMode: boolean; targetZoom: number }> = ({ is
   return null;
 };
 
-const LocationInitializer: React.FC = () => {
+const LocationInitializer: React.FC<{
+  onLocationFound: (lat: number, lng: number) => void;
+}> = ({ onLocationFound }) => {
   const map = useMap();
 
   useEffect(() => {
@@ -60,6 +72,7 @@ const LocationInitializer: React.FC = () => {
           console.log('Geolocation success:', position.coords);
           const { latitude, longitude } = position.coords;
           map.setView([latitude, longitude], 13, { animate: true }); // Zoom level 13 = city level
+          onLocationFound(latitude, longitude);
         },
         (error) => {
           console.error('Geolocation error:', error.message, error.code);
@@ -74,7 +87,48 @@ const LocationInitializer: React.FC = () => {
     } else {
       console.log('Geolocation not available');
     }
-  }, [map]);
+  }, [map, onLocationFound]);
+
+  return null;
+};
+
+// Component to track map movement
+const MapMoveTracker: React.FC<{
+  userLocation: { lat: number; lng: number } | null;
+  onMapMoved: (hasMoved: boolean) => void;
+}> = ({ userLocation, onMapMoved }) => {
+  const map = useMap();
+
+  useEffect(() => {
+    if (!userLocation) return;
+
+    const checkDistance = () => {
+      const center = map.getCenter();
+      const distance = center.distanceTo([userLocation.lat, userLocation.lng]);
+      // If user has moved more than 200m from their location, show recenter button
+      onMapMoved(distance > 200);
+    };
+
+    map.on('moveend', checkDistance);
+    checkDistance(); // Check initially
+
+    return () => {
+      map.off('moveend', checkDistance);
+    };
+  }, [map, userLocation, onMapMoved]);
+
+  return null;
+};
+
+// Component to capture map instance
+const MapInstanceCapture: React.FC<{
+  onMapReady: (map: L.Map) => void;
+}> = ({ onMapReady }) => {
+  const map = useMap();
+
+  useEffect(() => {
+    onMapReady(map);
+  }, [map, onMapReady]);
 
   return null;
 };
@@ -104,12 +158,48 @@ export const Map: React.FC<MapProps> = ({ figs, onFigClick, isPinMode, onSaveLoc
   const defaultZoom = 13; // City level on initial load
   const zoomForPlacement = 18; // ~200m coverage
 
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [hasMovedAway, setHasMovedAway] = useState(false);
+  const [mapInstance, setMapInstance] = useState<L.Map | null>(null);
+  const [locationRequested, setLocationRequested] = useState(false);
+
   const getMapCenterRef = useRef<(() => { lat: number; lng: number }) | null>(null);
+
+  // Show recenter button when: no location yet OR user has moved away
+  const showRecenterButton = !userLocation || hasMovedAway;
 
   const handleGetCenter = useCallback((getCenterFn: () => { lat: number; lng: number }) => {
     console.log('handleGetCenter called, storing function in ref');
     getMapCenterRef.current = getCenterFn;
   }, []);
+
+  const handleLocationFound = useCallback((lat: number, lng: number) => {
+    setUserLocation({ lat, lng });
+    setLocationRequested(true);
+  }, []);
+
+  const handleRecenterClick = () => {
+    if (!locationRequested) {
+      // First time - request location
+      if (navigator.geolocation && mapInstance) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const { latitude, longitude } = position.coords;
+            setUserLocation({ lat: latitude, lng: longitude });
+            setLocationRequested(true);
+            mapInstance.setView([latitude, longitude], 13, { animate: true });
+          },
+          (error) => {
+            console.error('Geolocation error:', error);
+            alert('Nije moguće dobiti vašu lokaciju. Provjerite dozvole.');
+          }
+        );
+      }
+    } else if (userLocation && mapInstance) {
+      // Already have location - just recenter
+      mapInstance.setView([userLocation.lat, userLocation.lng], 13, { animate: true });
+    }
+  };
 
   // Expose save location handler globally
   useEffect(() => {
@@ -138,14 +228,24 @@ export const Map: React.FC<MapProps> = ({ figs, onFigClick, isPinMode, onSaveLoc
       {isPinMode && (
         <div className="crosshair-overlay">
           <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="20" cy="20" r="18" stroke="#D4845A" strokeWidth="3" fill="none" opacity="0.8"/>
-            <line x1="20" y1="2" x2="20" y2="10" stroke="#D4845A" strokeWidth="3"/>
-            <line x1="20" y1="30" x2="20" y2="38" stroke="#D4845A" strokeWidth="3"/>
-            <line x1="2" y1="20" x2="10" y2="20" stroke="#D4845A" strokeWidth="3"/>
-            <line x1="30" y1="20" x2="38" y2="20" stroke="#D4845A" strokeWidth="3"/>
-            <circle cx="20" cy="20" r="3" fill="#D4845A"/>
+            <circle cx="20" cy="20" r="18" stroke="#2E7DFF" strokeWidth="3" fill="none" opacity="0.9"/>
+            <line x1="20" y1="2" x2="20" y2="10" stroke="#2E7DFF" strokeWidth="3"/>
+            <line x1="20" y1="30" x2="20" y2="38" stroke="#2E7DFF" strokeWidth="3"/>
+            <line x1="2" y1="20" x2="10" y2="20" stroke="#2E7DFF" strokeWidth="3"/>
+            <line x1="30" y1="20" x2="38" y2="20" stroke="#2E7DFF" strokeWidth="3"/>
+            <circle cx="20" cy="20" r="3" fill="#2E7DFF"/>
           </svg>
         </div>
+      )}
+
+      {showRecenterButton && (
+        <button
+          className="rustic-button recenter-button"
+          onClick={handleRecenterClick}
+          title="Centriraj kartu na vašu lokaciju"
+        >
+          🎯 Centriraj Kartu
+        </button>
       )}
 
       <MapContainer
@@ -167,9 +267,27 @@ export const Map: React.FC<MapProps> = ({ figs, onFigClick, isPinMode, onSaveLoc
           className="label-tiles"
         />
 
-        <LocationInitializer />
+        <MapInstanceCapture onMapReady={setMapInstance} />
+        <LocationInitializer onLocationFound={handleLocationFound} />
         <ZoomAdjuster isPinMode={isPinMode} targetZoom={zoomForPlacement} />
         <SaveLocationHandler onGetCenter={handleGetCenter} />
+        <MapMoveTracker userLocation={userLocation} onMapMoved={setHasMovedAway} />
+
+        {/* User location marker */}
+        {userLocation && (
+          <Marker
+            position={[userLocation.lat, userLocation.lng]}
+            icon={userLocationIcon}
+          >
+            <Popup>
+              <div style={{ fontFamily: 'Georgia, "Times New Roman", Times, serif', textAlign: 'center' }}>
+                <strong style={{ fontSize: '14px', color: '#2E7DFF' }}>
+                  Vaša Lokacija
+                </strong>
+              </div>
+            </Popup>
+          </Marker>
+        )}
 
         {figs.map((fig) => (
           <Marker
@@ -181,7 +299,7 @@ export const Map: React.FC<MapProps> = ({ figs, onFigClick, isPinMode, onSaveLoc
             }}
           >
             <Popup>
-              <div style={{ fontFamily: 'Inter, sans-serif' }}>
+              <div style={{ fontFamily: 'Georgia, "Times New Roman", Times, serif' }}>
                 <strong style={{ fontSize: '16px', color: '#5C3D2E' }}>
                   {fig.name}
                 </strong>

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { WelcomeModal } from './components/WelcomeModal';
 import { AddFigModal } from './components/AddFigModal';
 import { FigDetailsModal } from './components/FigDetailsModal';
+import { AboutModal } from './components/AboutModal';
 import { Map } from './components/Map';
 import { FigTreeIcon } from './components/FigTreeIcon';
 import { supabase } from './supabase';
@@ -19,6 +20,7 @@ function App() {
   const [selectedFig, setSelectedFig] = useState<FigLocation | null>(null);
   const [isEditingName, setIsEditingName] = useState(false);
   const [editedName, setEditedName] = useState('');
+  const [showAbout, setShowAbout] = useState(false);
 
   // Load user from localStorage
   useEffect(() => {
@@ -233,6 +235,16 @@ function App() {
         onCancelPinMode={handleCancelPinMode}
       />
 
+      {user && (
+        <button
+          className="rustic-button about-button"
+          onClick={() => setShowAbout(true)}
+          title="O aplikaciji"
+        >
+          ℹ️
+        </button>
+      )}
+
       {user && !selectedPosition && (
         <div className="center-button-container">
           {!isPinMode ? (
@@ -283,6 +295,10 @@ function App() {
           fig={selectedFig}
           onClose={() => setSelectedFig(null)}
         />
+      )}
+
+      {showAbout && (
+        <AboutModal onClose={() => setShowAbout(false)} />
       )}
     </>
   );

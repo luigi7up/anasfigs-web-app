@@ -95,7 +95,14 @@ export const AddFigModal: React.FC<AddFigModalProps> = ({
             Dodao/la: {userName}
           </div>
 
-          <div className="button-group">
+          <div className="button-group button-group--vertical">
+            <button
+              type="submit"
+              className="rustic-button"
+              disabled={saving || !name.trim()}
+            >
+              {saving ? 'Spremanje...' : 'Spremi Smokvino Stablo 💖'}
+            </button>
             <button
               type="button"
               className="rustic-button button-secondary"
@@ -103,13 +110,6 @@ export const AddFigModal: React.FC<AddFigModalProps> = ({
               disabled={saving}
             >
               Otkaži
-            </button>
-            <button
-              type="submit"
-              className="rustic-button"
-              disabled={saving || !name.trim()}
-            >
-              {saving ? 'Spremanje...' : 'Spremi Smokvino Stablo 💖'}
             </button>
           </div>
         </form>

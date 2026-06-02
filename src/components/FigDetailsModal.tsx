@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { Navigation } from 'lucide-react';
 import type { FigLocation } from '../types';
 
 interface FigDetailsModalProps {
@@ -7,11 +8,30 @@ interface FigDetailsModalProps {
 }
 
 export const FigDetailsModal: React.FC<FigDetailsModalProps> = ({ fig, onClose }) => {
+  const [hasUserLocation, setHasUserLocation] = useState(false);
+
+  useEffect(() => {
+    // Check if user location is available
+    if (typeof window !== 'undefined' && (window as any).getUserLocation) {
+      const loc = (window as any).getUserLocation();
+      setHasUserLocation(!!loc);
+    }
+  }, []);
+
   const formattedDate = new Date(fig.createdAt).toLocaleDateString('hr-HR', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
   });
+
+  const handleShowDirections = () => {
+    if (typeof window !== 'undefined' && (window as any).showDirectionsToFig) {
+      (window as any).showDirectionsToFig(fig);
+      onClose();
+    } else {
+      alert('Tvoja lokacija nije dostupna.');
+    }
+  };
 
   return (
     <div className="modal-overlay" onClick={onClose}>
@@ -51,13 +71,25 @@ export const FigDetailsModal: React.FC<FigDetailsModalProps> = ({ fig, onClose }
           </div>
         </div>
 
-        <button
-          className="rustic-button"
-          style={{ width: '100%' }}
-          onClick={onClose}
-        >
-          Zatvori
-        </button>
+        <div className="button-group button-group--vertical">
+          {hasUserLocation && (
+            <button
+              className="rustic-button"
+              style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+              onClick={handleShowDirections}
+            >
+              <Navigation size={20} />
+              Kako do smokve
+            </button>
+          )}
+          <button
+            className="rustic-button button-secondary"
+            style={{ width: '100%' }}
+            onClick={onClose}
+          >
+            Zatvori
+          </button>
+        </div>
       </div>
     </div>
   );

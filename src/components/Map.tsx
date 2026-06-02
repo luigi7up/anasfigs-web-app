@@ -1,6 +1,9 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents, useMap } from 'react-leaflet';
 import L from 'leaflet';
+import 'leaflet-routing-machine';
+import 'leaflet-routing-machine/dist/leaflet-routing-machine.css';
+import { Navigation, MapPin } from 'lucide-react';
 import type { FigLocation } from '../types';
 import { FIG_TREE_ICON_SRC } from './FigTreeIcon';
 import { LocationPermissionModal } from './LocationPermissionModal';
@@ -60,8 +63,13 @@ const LocationInitializer: React.FC<{
   onLocationFound: (lat: number, lng: number) => void;
 }> = ({ onLocationFound }) => {
   const map = useMap();
+  const hasInitializedRef = useRef(false);
 
   useEffect(() => {
+    // Only run once on mount
+    if (hasInitializedRef.current) return;
+    hasInitializedRef.current = true;
+
     console.log('LocationInitializer mounted');
     console.log('Geolocation available?', !!navigator.geolocation);
 
@@ -88,7 +96,8 @@ const LocationInitializer: React.FC<{
     } else {
       console.log('Geolocation not available');
     }
-  }, [map, onLocationFound]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Empty array - truly only run once on mount
 
   return null;
 };
@@ -165,6 +174,9 @@ export const Map: React.FC<MapProps> = ({ figs, onFigClick, isPinMode, onSaveLoc
   const [locationRequested, setLocationRequested] = useState(false);
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [locationDenied, setLocationDenied] = useState(false);
+  const [showRoute, setShowRoute] = useState(false);
+  const [closestFig, setClosestFig] = useState<FigLocation | null>(null);
+  const routingControlRef = useRef<L.Routing.Control | null>(null);
 
   const getMapCenterRef = useRef<(() => { lat: number; lng: number }) | null>(null);
 
@@ -219,6 +231,136 @@ export const Map: React.FC<MapProps> = ({ figs, onFigClick, isPinMode, onSaveLoc
     requestLocation();
   };
 
+  // Find closest fig to user location
+  const findClosestFig = useCallback((): FigLocation | null => {
+    if (!userLocation || figs.length === 0) return null;
+
+    const userLatLng = L.latLng(userLocation.lat, userLocation.lng);
+    let closest = figs[0];
+    let minDistance = userLatLng.distanceTo([closest.lat, closest.lng]);
+
+    figs.forEach(fig => {
+      const distance = userLatLng.distanceTo([fig.lat, fig.lng]);
+      if (distance < minDistance) {
+        minDistance = distance;
+        closest = fig;
+      }
+    });
+
+    return closest;
+  }, [userLocation, figs]);
+
+  // Show route to closest fig
+  const showDirectionsToClosest = useCallback(() => {
+    if (!mapInstance || !userLocation || figs.length === 0) {
+      alert('Lokacija nije dostupna ili nema smokvi na karti.');
+      return;
+    }
+
+    // Clear any existing route
+    if (routingControlRef.current) {
+      mapInstance.removeControl(routingControlRef.current);
+      routingControlRef.current = null;
+    }
+
+    const closest = findClosestFig();
+    if (!closest) return;
+
+    setClosestFig(closest);
+    setShowRoute(true);
+
+    // Create routing control with walking profile using GraphHopper
+    const routingControl = L.Routing.control({
+      waypoints: [
+        L.latLng(userLocation.lat, userLocation.lng),
+        L.latLng(closest.lat, closest.lng)
+      ],
+      router: new (L.Routing as any).OSRMv1({
+        serviceUrl: 'https://routing.openstreetmap.de/routed-foot/route/v1',
+      }),
+      routeWhileDragging: false,
+      addWaypoints: false,
+      draggableWaypoints: false,
+      fitSelectedRoutes: true,
+      showAlternatives: false,
+      lineOptions: {
+        styles: [{ color: '#8B6F47', opacity: 0.8, weight: 6 }],
+        extendToWaypoints: true,
+        missingRouteTolerance: 0
+      }
+    }).addTo(mapInstance);
+
+    routingControlRef.current = routingControl;
+  }, [mapInstance, userLocation, figs, findClosestFig]);
+
+  // Clear route
+  const clearRoute = useCallback(() => {
+    if (routingControlRef.current && mapInstance) {
+      mapInstance.removeControl(routingControlRef.current);
+      routingControlRef.current = null;
+    }
+    setShowRoute(false);
+    setClosestFig(null);
+  }, [mapInstance]);
+
+  // Show route to a specific fig
+  const showDirectionsToFig = useCallback((fig: FigLocation) => {
+    if (!mapInstance || !userLocation) {
+      alert('Tvoja lokacija nije dostupna.');
+      return;
+    }
+
+    // Clear any existing route
+    if (routingControlRef.current) {
+      mapInstance.removeControl(routingControlRef.current);
+      routingControlRef.current = null;
+    }
+
+    setClosestFig(fig);
+    setShowRoute(true);
+
+    // Create routing control with walking profile using GraphHopper
+    const routingControl = L.Routing.control({
+      waypoints: [
+        L.latLng(userLocation.lat, userLocation.lng),
+        L.latLng(fig.lat, fig.lng)
+      ],
+      router: new (L.Routing as any).OSRMv1({
+        serviceUrl: 'https://routing.openstreetmap.de/routed-foot/route/v1',
+      }),
+      routeWhileDragging: false,
+      addWaypoints: false,
+      draggableWaypoints: false,
+      fitSelectedRoutes: true,
+      showAlternatives: false,
+      lineOptions: {
+        styles: [{ color: '#8B6F47', opacity: 0.8, weight: 6 }],
+        extendToWaypoints: true,
+        missingRouteTolerance: 0
+      }
+    }).addTo(mapInstance);
+
+    routingControlRef.current = routingControl;
+  }, [mapInstance, userLocation]);
+
+  // Toggle directions
+  const toggleDirections = useCallback(() => {
+    if (showRoute) {
+      clearRoute();
+    } else {
+      showDirectionsToClosest();
+    }
+  }, [showRoute, clearRoute, showDirectionsToClosest]);
+
+  // Cleanup routing control on unmount
+  useEffect(() => {
+    return () => {
+      if (routingControlRef.current && mapInstance) {
+        mapInstance.removeControl(routingControlRef.current);
+      }
+    };
+  }, [mapInstance]);
+
   // Expose save location handler globally
   useEffect(() => {
     console.log('Setting up saveMapLocation');
@@ -233,13 +375,33 @@ export const Map: React.FC<MapProps> = ({ figs, onFigClick, isPinMode, onSaveLoc
           console.error('getMapCenterRef.current or onSaveLocation missing');
         }
       };
+
+      // Expose function to navigate to a specific location
+      (window as any).navigateToLocation = (lat: number, lng: number) => {
+        if (mapInstance) {
+          mapInstance.setView([lat, lng], 18, { animate: true });
+        }
+      };
+
+      // Expose function to show directions to a specific fig
+      (window as any).showDirectionsToFig = showDirectionsToFig;
+
+      // Expose function to clear route
+      (window as any).clearMapRoute = clearRoute;
+
+      // Expose user location for distance calculations
+      (window as any).getUserLocation = () => userLocation;
     }
     return () => {
       if (typeof window !== 'undefined') {
         delete (window as any).saveMapLocation;
+        delete (window as any).navigateToLocation;
+        delete (window as any).showDirectionsToFig;
+        delete (window as any).clearMapRoute;
+        delete (window as any).getUserLocation;
       }
     };
-  }, [onSaveLocation]);
+  }, [onSaveLocation, mapInstance, showDirectionsToFig, clearRoute, userLocation]);
 
   return (
     <div className="map-container">
@@ -258,11 +420,23 @@ export const Map: React.FC<MapProps> = ({ figs, onFigClick, isPinMode, onSaveLoc
 
       {showRecenterButton && (
         <button
-          className="rustic-button recenter-button"
+          className="locate-me-button"
           onClick={handleRecenterClick}
           title="Pronađi moju lokaciju"
         >
-          🎯 Pronađi Me
+          <Navigation size={20} />
+          <span>Pronađi Me</span>
+        </button>
+      )}
+
+      {userLocation && figs.length > 0 && (
+        <button
+          className="directions-button"
+          onClick={toggleDirections}
+          title={showRoute ? "Sakrij putokaz" : "Prikaži put do najbliže smokve"}
+        >
+          <MapPin size={20} />
+          <span>{showRoute ? 'Sakrij Put' : 'Najbliža Smokva'}</span>
         </button>
       )}
 

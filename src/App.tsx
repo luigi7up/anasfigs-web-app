@@ -1,8 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import confetti from 'canvas-confetti';
 import { WelcomeModal } from './components/WelcomeModal';
 import { AddFigModal } from './components/AddFigModal';
 import { FigDetailsModal } from './components/FigDetailsModal';
 import { AboutModal } from './components/AboutModal';
+import { ThankYouModal } from './components/ThankYouModal';
+import { FigListModal } from './components/FigListModal';
 import { Map } from './components/Map';
 import { FigTreeIcon } from './components/FigTreeIcon';
 import { supabase } from './supabase';
@@ -21,6 +24,10 @@ function App() {
   const [isEditingName, setIsEditingName] = useState(false);
   const [editedName, setEditedName] = useState('');
   const [showAbout, setShowAbout] = useState(false);
+  const [showThankYou, setShowThankYou] = useState(false);
+  const [showFigList, setShowFigList] = useState(false);
+  const figCountRef = useRef<HTMLSpanElement>(null);
+  const previousFigCount = useRef<number>(0);
 
   // Load user from localStorage
   useEffect(() => {
@@ -55,6 +62,40 @@ function App() {
       subscription.unsubscribe();
     };
   }, []);
+
+  // Trigger confetti when fig count increases
+  useEffect(() => {
+    if (figs.length > previousFigCount.current && previousFigCount.current > 0 && figCountRef.current) {
+      // Get position of the fig count element
+      const rect = figCountRef.current.getBoundingClientRect();
+      const x = (rect.left + rect.width / 2) / window.innerWidth;
+      const y = (rect.top + rect.height / 2) / window.innerHeight;
+
+      // Launch confetti from the fig count position
+      confetti({
+        particleCount: 50,
+        spread: 70,
+        origin: { x, y },
+        colors: ['#7C9660', '#8B6F47', '#5C3D2E', '#9D5B9A', '#2E7DFF'],
+        ticks: 200,
+        gravity: 1.2,
+        scalar: 1.2
+      });
+
+      // Additional burst for extra celebration
+      setTimeout(() => {
+        confetti({
+          particleCount: 30,
+          spread: 100,
+          origin: { x, y },
+          colors: ['#7C9660', '#8B6F47', '#5C3D2E', '#9D5B9A'],
+          ticks: 150,
+          gravity: 1
+        });
+      }, 150);
+    }
+    previousFigCount.current = figs.length;
+  }, [figs.length]);
 
   const loadFigs = async () => {
     try {
@@ -165,6 +206,9 @@ function App() {
       // Reset states
       setSelectedPosition(null);
 
+      // Show thank you modal
+      setShowThankYou(true);
+
       // Reload figs
       await loadFigs();
     } catch (error) {
@@ -200,6 +244,14 @@ function App() {
         <div className="info-banner">
           <h1 className="app-title">
             Anine Smokve <FigTreeIcon size={32} />
+            <span
+              ref={figCountRef}
+              className="fig-count"
+              onClick={() => setShowFigList(true)}
+              title="Prikaži sve smokve"
+            >
+              {figs.length}
+            </span>
           </h1>
           <div className="user-greeting">
             Dobrodošli, {isEditingName ? (
@@ -298,7 +350,23 @@ function App() {
       )}
 
       {showAbout && (
-        <AboutModal onClose={() => setShowAbout(false)} />
+        <AboutModal
+          onClose={() => setShowAbout(false)}
+          figCount={figs.length}
+          onShowAllFigs={() => setShowFigList(true)}
+        />
+      )}
+
+      {showThankYou && user && (
+        <ThankYouModal onClose={() => setShowThankYou(false)} userName={user.name} />
+      )}
+
+      {showFigList && (
+        <FigListModal
+          figs={figs}
+          onClose={() => setShowFigList(false)}
+          onFigSelect={(fig) => setSelectedFig(fig)}
+        />
       )}
     </>
   );

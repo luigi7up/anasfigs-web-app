@@ -271,23 +271,92 @@ body {
 }
 
 /* Recenter button */
-.recenter-button {
+.locate-me-button {
   position: absolute;
-  top: 24px;
-  left: 50%;
-  transform: translateX(-50%);
+  bottom: 140px;
+  right: 20px;
   z-index: 500;
-  font-size: 18px;
-  padding: 12px 24px;
-  background-color: #2E7DFF;
-  border-color: #1E5FCC;
-  box-shadow: 0 4px 12px rgba(46, 125, 255, 0.4);
-  animation: slideDown 0.3s ease;
+
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  font-family: Georgia, 'Times New Roman', Times, serif;
+  font-size: 16px;
+  font-weight: 500;
+  padding: 12px 20px;
+
+  background-color: white;
+  color: #2E7DFF;
+  border: 2px solid #2E7DFF;
+  border-radius: 50px;
+
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  animation: slideIn 0.3s ease;
 }
 
-.recenter-button:hover {
-  background-color: #4A8FFF;
-  transform: translateX(-50%) translateY(-2px);
+.locate-me-button:hover {
+  background-color: #2E7DFF;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(46, 125, 255, 0.4);
+}
+
+.locate-me-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Directions button */
+.directions-button {
+  position: absolute;
+  bottom: 80px;
+  right: 20px;
+  z-index: 500;
+
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  font-family: Georgia, 'Times New Roman', Times, serif;
+  font-size: 16px;
+  font-weight: 500;
+  padding: 12px 20px;
+
+  background-color: white;
+  color: #8B6F47;
+  border: 2px solid #8B6F47;
+  border-radius: 50px;
+
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  animation: slideIn 0.3s ease;
+}
+
+.directions-button:hover {
+  background-color: #8B6F47;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(139, 111, 71, 0.4);
+}
+
+.directions-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 @keyframes slideDown {
@@ -525,6 +594,21 @@ body {
   gap: 8px;
 }
 
+.fig-count {
+  font-family: Georgia, 'Times New Roman', Times, serif;
+  font-size: 20px;
+  color: #8B6F47;
+  text-decoration: underline;
+  cursor: pointer;
+  margin-left: 8px;
+  transition: color 0.2s ease;
+  font-weight: 600;
+}
+
+.fig-count:hover {
+  color: #5C3D2E;
+}
+
 .user-greeting {
   font-family: Georgia, 'Times New Roman', Times, serif;
   font-size: 14px;
@@ -586,6 +670,132 @@ body {
   to { transform: rotate(360deg); }
 }
 
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-20px) scale(1.1);
+  }
+}
+
+/* Fig List Modal */
+.fig-list-modal {
+  max-width: 600px;
+}
+
+.fig-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.fig-list-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background-color: #FAF5EB;
+  border: 2px solid #D4C5B0;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.fig-list-item:hover {
+  background-color: #F5EFE0;
+  border-color: #8B6F47;
+  transform: translateX(4px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.fig-list-item-icon {
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: white;
+  border-radius: 50%;
+  border: 2px solid #D4C5B0;
+}
+
+.fig-list-item-icon img {
+  width: 32px;
+  height: 32px;
+}
+
+.fig-list-item-content {
+  flex: 1;
+  font-family: Georgia, 'Times New Roman', Times, serif;
+}
+
+.fig-list-item-name {
+  font-size: 18px;
+  font-weight: 600;
+  color: #5C3D2E;
+  margin: 0 0 4px 0;
+}
+
+.fig-list-item-meta {
+  font-size: 14px;
+  color: #8B6F47;
+  margin: 0 0 4px 0;
+}
+
+.fig-list-item-meta strong {
+  color: #5C3D2E;
+}
+
+.fig-list-item-date {
+  font-size: 12px;
+  color: #A89378;
+  margin: 0;
+  font-style: italic;
+}
+
+.fig-list-item-distance {
+  color: #2E7DFF;
+  font-weight: 600;
+}
+
+.fig-list-item-walk-btn {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background-color: #2E7DFF;
+  color: white;
+  border: 2px solid #1E5FCC;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.fig-list-item-walk-btn:hover {
+  background-color: #4A8FFF;
+  transform: scale(1.1);
+  box-shadow: 0 2px 8px rgba(46, 125, 255, 0.4);
+}
+
+.fig-list-item-walk-btn:active {
+  transform: scale(0.95);
+}
+
+.fig-list-item-arrow {
+  flex-shrink: 0;
+  font-size: 24px;
+  color: #8B6F47;
+  transition: transform 0.2s ease;
+}
+
+.fig-list-item:hover .fig-list-item-arrow {
+  transform: translateX(4px);
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
   .modal-content {
@@ -636,10 +846,42 @@ body {
     font-size: 28px;
   }
 
-  .recenter-button {
-    top: 16px;
-    font-size: 16px;
-    padding: 10px 18px;
+  .locate-me-button {
+    bottom: 120px;
+    right: 16px;
+    font-size: 14px;
+    padding: 10px 16px;
+  }
+
+  .locate-me-button span {
+    display: none;
+  }
+
+  .locate-me-button {
+    width: 48px;
+    height: 48px;
+    padding: 0;
+    justify-content: center;
+    border-radius: 50%;
+  }
+
+  .directions-button {
+    bottom: 70px;
+    right: 16px;
+    font-size: 14px;
+    padding: 10px 16px;
+  }
+
+  .directions-button span {
+    display: none;
+  }
+
+  .directions-button {
+    width: 48px;
+    height: 48px;
+    padding: 0;
+    justify-content: center;
+    border-radius: 50%;
   }
 
   .app-title {
@@ -651,6 +893,23 @@ body {
     gap: 8px;
     padding: 12px 16px;
   }
+}
+
+/* Leaflet Routing Machine styling - Hide the instructions panel completely */
+.leaflet-routing-container {
+  display: none !important;
+}
+
+.leaflet-routing-alt {
+  display: none !important;
+}
+
+.leaflet-routing-geocoder {
+  display: none !important;
+}
+
+.leaflet-routing-collapse-btn {
+  display: none !important;
 }
 
 /* Tooltip style */

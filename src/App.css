@@ -916,13 +916,41 @@ body {
   }
 
   .app-title {
-    font-size: 24px;
+    font-size: 20px;
+    gap: 4px;
+  }
+
+  .app-title svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  .fig-count {
+    font-size: 18px;
+    margin-left: 4px;
   }
 
   .info-banner {
-    flex-direction: column;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
     gap: 8px;
-    padding: 12px 16px;
+    padding: 10px 12px;
+  }
+
+  .user-greeting {
+    font-size: 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 140px;
+  }
+
+  .editable-name {
+    max-width: 100px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: inline-block;
   }
 }
 

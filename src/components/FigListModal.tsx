@@ -76,6 +76,13 @@ export const FigListModal: React.FC<FigListModalProps> = ({ figs, onClose, onFig
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content fig-list-modal" onClick={(e) => e.stopPropagation()}>
+        <button
+          className="modal-close-button"
+          onClick={onClose}
+          title="Zatvori"
+        >
+          ✕
+        </button>
         <h2 className="wooden-plaque">
           Sve Smokve ({figs.length})
         </h2>
@@ -137,21 +144,7 @@ export const FigListModal: React.FC<FigListModalProps> = ({ figs, onClose, onFig
           )}
         </div>
 
-        <div className="button-group button-group--vertical" style={{ marginTop: '24px' }}>
-          {userLocation && (
-            <button
-              className="rustic-button button-secondary"
-              onClick={() => {
-                if (typeof window !== 'undefined' && (window as any).clearMapRoute) {
-                  (window as any).clearMapRoute();
-                }
-                onClose();
-              }}
-              style={{ width: '100%' }}
-            >
-              Sakrij Put
-            </button>
-          )}
+        <div className="button-group" style={{ marginTop: '24px' }}>
           <button
             className="rustic-button"
             onClick={onClose}

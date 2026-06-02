@@ -3,6 +3,7 @@ import { MapContainer, TileLayer, Marker, Popup, useMapEvents, useMap } from 're
 import L from 'leaflet';
 import type { FigLocation } from '../types';
 import { FIG_TREE_ICON_SRC } from './FigTreeIcon';
+import { LocationPermissionModal } from './LocationPermissionModal';
 
 // Fix Leaflet default marker icon issue
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
@@ -71,7 +72,7 @@ const LocationInitializer: React.FC<{
         (position) => {
           console.log('Geolocation success:', position.coords);
           const { latitude, longitude } = position.coords;
-          map.setView([latitude, longitude], 13, { animate: true }); // Zoom level 13 = city level
+          map.setView([latitude, longitude], 15, { animate: true }); // Zoom level 15 = neighborhood level
           onLocationFound(latitude, longitude);
         },
         (error) => {
@@ -155,13 +156,15 @@ const SaveLocationHandler: React.FC<{
 export const Map: React.FC<MapProps> = ({ figs, onFigClick, isPinMode, onSaveLocation, onCancelPinMode }) => {
   // Default center: Split, Croatia
   const defaultCenter: [number, number] = [43.5081, 16.4402];
-  const defaultZoom = 13; // City level on initial load
+  const defaultZoom = 15; // Neighborhood level on initial load
   const zoomForPlacement = 18; // ~200m coverage
 
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [hasMovedAway, setHasMovedAway] = useState(false);
   const [mapInstance, setMapInstance] = useState<L.Map | null>(null);
   const [locationRequested, setLocationRequested] = useState(false);
+  const [showLocationModal, setShowLocationModal] = useState(false);
+  const [locationDenied, setLocationDenied] = useState(false);
 
   const getMapCenterRef = useRef<(() => { lat: number; lng: number }) | null>(null);
 
@@ -178,27 +181,42 @@ export const Map: React.FC<MapProps> = ({ figs, onFigClick, isPinMode, onSaveLoc
     setLocationRequested(true);
   }, []);
 
-  const handleRecenterClick = () => {
-    if (!locationRequested) {
-      // First time - request location
-      if (navigator.geolocation && mapInstance) {
-        navigator.geolocation.getCurrentPosition(
-          (position) => {
-            const { latitude, longitude } = position.coords;
-            setUserLocation({ lat: latitude, lng: longitude });
-            setLocationRequested(true);
-            mapInstance.setView([latitude, longitude], 13, { animate: true });
-          },
-          (error) => {
-            console.error('Geolocation error:', error);
-            alert('Nije moguće dobiti vašu lokaciju. Provjerite dozvole.');
+  const requestLocation = useCallback(() => {
+    if (navigator.geolocation && mapInstance) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          setUserLocation({ lat: latitude, lng: longitude });
+          setLocationRequested(true);
+          setLocationDenied(false);
+          mapInstance.setView([latitude, longitude], 15, { animate: true });
+        },
+        (error) => {
+          console.error('Geolocation error:', error);
+          if (error.code === error.PERMISSION_DENIED) {
+            setLocationDenied(true);
+            setShowLocationModal(true);
+          } else {
+            alert('Nije moguće dobiti tvoju lokaciju. Pokušaj ponovno.');
           }
-        );
-      }
+        }
+      );
+    }
+  }, [mapInstance]);
+
+  const handleRecenterClick = () => {
+    if (!locationRequested || locationDenied) {
+      // First time or was denied - request location
+      requestLocation();
     } else if (userLocation && mapInstance) {
       // Already have location - just recenter
-      mapInstance.setView([userLocation.lat, userLocation.lng], 13, { animate: true });
+      mapInstance.setView([userLocation.lat, userLocation.lng], 15, { animate: true });
     }
+  };
+
+  const handleRetryLocation = () => {
+    setShowLocationModal(false);
+    requestLocation();
   };
 
   // Expose save location handler globally
@@ -242,9 +260,9 @@ export const Map: React.FC<MapProps> = ({ figs, onFigClick, isPinMode, onSaveLoc
         <button
           className="rustic-button recenter-button"
           onClick={handleRecenterClick}
-          title="Centriraj kartu na vašu lokaciju"
+          title="Pronađi moju lokaciju"
         >
-          🎯 Centriraj Kartu
+          🎯 Pronađi Me
         </button>
       )}
 
@@ -282,7 +300,7 @@ export const Map: React.FC<MapProps> = ({ figs, onFigClick, isPinMode, onSaveLoc
             <Popup>
               <div style={{ fontFamily: 'Georgia, "Times New Roman", Times, serif', textAlign: 'center' }}>
                 <strong style={{ fontSize: '14px', color: '#2E7DFF' }}>
-                  Vaša Lokacija
+                  Tvoja Lokacija
                 </strong>
               </div>
             </Popup>
@@ -312,6 +330,13 @@ export const Map: React.FC<MapProps> = ({ figs, onFigClick, isPinMode, onSaveLoc
           </Marker>
         ))}
       </MapContainer>
+
+      {showLocationModal && (
+        <LocationPermissionModal
+          onClose={() => setShowLocationModal(false)}
+          onRetry={handleRetryLocation}
+        />
+      )}
     </div>
   );
 };

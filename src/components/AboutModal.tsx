@@ -26,7 +26,7 @@ export const AboutModal: React.FC<AboutModalProps> = ({ onClose }) => {
             borderRadius: '8px',
             borderLeft: '4px solid #7C9660'
           }}>
-            Ovo je jednostavan pokušaj mapiranja svih smokava za koje znate po gradu i okolicikako bi moja voljena Ana mogla imati sve na jednoj karti. 🌿
+            Ovo je jednostavan pokušaj mapiranja svih smokava koje znaš po gradu i okolici kako bi moja voljena Ana mogla imati sve na jednoj karti. 🌿
           </p>
 
           <p style={{
@@ -39,7 +39,7 @@ export const AboutModal: React.FC<AboutModalProps> = ({ onClose }) => {
             background: '#F5EFE0',
             borderRadius: '8px'
           }}>
-            Hvala vam naj-naj za vaše doprinose! 💝
+            Hvala vam naj-naj za vaše doprinose Ani! 💝
           </p>
         </div>
 

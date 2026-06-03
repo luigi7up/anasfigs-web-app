@@ -188,7 +188,7 @@ const SaveLocationHandler: React.FC<{
 export const Map: React.FC<MapProps> = ({ figs, onFigClick, isPinMode, onSaveLocation, onCancelPinMode, onShowAbout }) => {
   // Default center: Split, Croatia
   const defaultCenter: [number, number] = [43.5081, 16.4402];
-  const defaultZoom = 15; // Neighborhood level on initial load
+  const defaultZoom = 13; // City level on initial load
   const zoomForPlacement = 18; // ~200m coverage
 
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
@@ -434,10 +434,10 @@ export const Map: React.FC<MapProps> = ({ figs, onFigClick, isPinMode, onSaveLoc
           </>
         ) : (
           <>
-            {/* Standard OpenStreetMap tiles showing all details */}
+            {/* Satellite imagery for hyper-detailed view */}
             <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              attribution='Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+              url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
               maxZoom={19}
             />
           </>

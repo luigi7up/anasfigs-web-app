@@ -73,9 +73,6 @@ export const FigDetailsModal: React.FC<FigDetailsModalProps> = ({ fig, onClose }
           <div>
             <strong>Datum:</strong> {formattedDate}
           </div>
-          <div>
-            <strong>Lokacija:</strong> {fig.lat.toFixed(5)}, {fig.lng.toFixed(5)}
-          </div>
         </div>
 
         {hasUserLocation && (

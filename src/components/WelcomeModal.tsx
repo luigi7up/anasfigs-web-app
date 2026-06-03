@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FigTreeIcon } from './FigTreeIcon';
 
 interface WelcomeModalProps {
@@ -7,6 +7,17 @@ interface WelcomeModalProps {
 
 export const WelcomeModal: React.FC<WelcomeModalProps> = ({ onSubmit }) => {
   const [name, setName] = useState('');
+
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && name.trim()) {
+        onSubmit(name.trim());
+      }
+    };
+
+    window.addEventListener('keydown', handleEscape);
+    return () => window.removeEventListener('keydown', handleEscape);
+  }, [name, onSubmit]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import type { FigLocation } from '../types';
 
 interface AddFigModalProps {
@@ -17,6 +17,17 @@ export const AddFigModal: React.FC<AddFigModalProps> = ({
   const [name, setName] = useState('');
   const [note, setNote] = useState('');
   const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && !saving) {
+        onClose();
+      }
+    };
+
+    window.addEventListener('keydown', handleEscape);
+    return () => window.removeEventListener('keydown', handleEscape);
+  }, [onClose, saving]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

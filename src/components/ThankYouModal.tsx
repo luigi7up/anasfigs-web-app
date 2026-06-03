@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect } from 'react';
 
 interface ThankYouModalProps {
   onClose: () => void;
@@ -17,6 +17,18 @@ export const ThankYouModal: React.FC<ThankYouModalProps> = ({ onClose, userName 
   const randomMessage = useMemo(() => {
     return funnyMessages[Math.floor(Math.random() * funnyMessages.length)];
   }, []);
+
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    window.addEventListener('keydown', handleEscape);
+    return () => window.removeEventListener('keydown', handleEscape);
+  }, [onClose]);
+
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>

@@ -18,6 +18,17 @@ export const FigDetailsModal: React.FC<FigDetailsModalProps> = ({ fig, onClose }
     }
   }, []);
 
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    window.addEventListener('keydown', handleEscape);
+    return () => window.removeEventListener('keydown', handleEscape);
+  }, [onClose]);
+
   const formattedDate = new Date(fig.createdAt).toLocaleDateString('hr-HR', {
     year: 'numeric',
     month: 'long',

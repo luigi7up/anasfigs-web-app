@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 
 interface LocationPermissionModalProps {
   onClose: () => void;
@@ -6,6 +6,17 @@ interface LocationPermissionModalProps {
 }
 
 export const LocationPermissionModal: React.FC<LocationPermissionModalProps> = ({ onClose, onRetry }) => {
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    window.addEventListener('keydown', handleEscape);
+    return () => window.removeEventListener('keydown', handleEscape);
+  }, [onClose]);
+
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>

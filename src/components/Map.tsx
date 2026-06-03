@@ -220,9 +220,9 @@ export const Map: React.FC<MapProps> = ({ figs, onFigClick, isPinMode, onSaveLoc
     setCurrentZoom(zoom);
 
     // Auto-switch map style based on zoom level
-    // Zoom >= 18 (top 2 levels): detailed map
-    // Zoom < 18: watercolor map
-    if (zoom >= 18) {
+    // Zoom >= 19 (top level): detailed satellite map
+    // Zoom < 19: watercolor map
+    if (zoom >= 19) {
       setIsWatercolorMap(false);
     } else {
       setIsWatercolorMap(true);

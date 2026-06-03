@@ -102,6 +102,7 @@ function App() {
       const { data, error } = await supabase
         .from('figs')
         .select('*')
+        .eq('visible', true)
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -196,6 +197,7 @@ function App() {
           name: figData.name,
           note: figData.note,
           added_by: figData.addedBy,
+          visible: true,
         }])
         .select();
 

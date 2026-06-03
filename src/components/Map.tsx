@@ -46,6 +46,7 @@ interface MapProps {
   onSaveLocation?: (lat: number, lng: number) => void;
   onCancelPinMode?: () => void;
   onShowAbout?: () => void;
+  onMapMove?: () => void;
 }
 
 const ZoomAdjuster: React.FC<{ isPinMode: boolean; targetZoom: number }> = ({ isPinMode, targetZoom }) => {
@@ -153,6 +154,29 @@ const ZoomTracker: React.FC<{
   return null;
 };
 
+// Component to track map movement
+const MapMoveDetector: React.FC<{
+  onMapMove?: () => void;
+}> = ({ onMapMove }) => {
+  const map = useMap();
+
+  useEffect(() => {
+    if (!onMapMove) return;
+
+    const handleMove = () => {
+      onMapMove();
+    };
+
+    map.on('moveend', handleMove);
+
+    return () => {
+      map.off('moveend', handleMove);
+    };
+  }, [map, onMapMove]);
+
+  return null;
+};
+
 // Component to capture map instance
 const MapInstanceCapture: React.FC<{
   onMapReady: (map: L.Map) => void;
@@ -185,7 +209,7 @@ const SaveLocationHandler: React.FC<{
   return null;
 };
 
-export const Map: React.FC<MapProps> = ({ figs, onFigClick, isPinMode, onSaveLocation, onCancelPinMode, onShowAbout }) => {
+export const Map: React.FC<MapProps> = ({ figs, onFigClick, isPinMode, onSaveLocation, onCancelPinMode, onShowAbout, onMapMove }) => {
   // Default center: Split, Croatia
   const defaultCenter: [number, number] = [43.5081, 16.4402];
   const defaultZoom = 13; // City level on initial load
@@ -449,6 +473,7 @@ export const Map: React.FC<MapProps> = ({ figs, onFigClick, isPinMode, onSaveLoc
         <SaveLocationHandler onGetCenter={handleGetCenter} />
         <MapMoveTracker userLocation={userLocation} onMapMoved={setHasMovedAway} />
         <ZoomTracker onZoomChange={handleZoomChange} />
+        <MapMoveDetector onMapMove={onMapMove} />
 
         {/* User location marker */}
         {userLocation && (

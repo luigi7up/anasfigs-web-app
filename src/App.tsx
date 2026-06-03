@@ -28,6 +28,7 @@ function App() {
   const [showFigList, setShowFigList] = useState(false);
   const figCountRef = useRef<HTMLSpanElement>(null);
   const previousFigCount = useRef<number>(0);
+  const [animationKey, setAnimationKey] = useState(0);
 
   // Load user from localStorage
   useEffect(() => {
@@ -176,6 +177,10 @@ function App() {
     setSelectedPosition(null);
   };
 
+  const handleMapMove = () => {
+    setAnimationKey(prev => prev + 1);
+  };
+
   const handleSaveLocation = () => {
     // Get the center of the map (where crosshair is pointing)
     // This will be handled by the Map component
@@ -248,9 +253,10 @@ function App() {
             Anine Smokve <FigTreeIcon size={32} />
             <span
               ref={figCountRef}
-              className="fig-count"
+              className="fig-count fig-count-animate"
               onClick={() => setShowFigList(true)}
               title="Prikaži sve smokve"
+              key={animationKey}
             >
               {figs.length}
             </span>
@@ -288,6 +294,7 @@ function App() {
         onSaveLocation={handleMapClick}
         onCancelPinMode={handleCancelPinMode}
         onShowAbout={() => setShowAbout(true)}
+        onMapMove={handleMapMove}
       />
 
       {user && !selectedPosition && (

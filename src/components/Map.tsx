@@ -3,7 +3,7 @@ import { MapContainer, TileLayer, Marker, Popup, useMapEvents, useMap } from 're
 import L from 'leaflet';
 import 'leaflet-routing-machine';
 import 'leaflet-routing-machine/dist/leaflet-routing-machine.css';
-import { Navigation, MapPin } from 'lucide-react';
+import { Navigation } from 'lucide-react';
 import type { FigLocation } from '../types';
 import { FIG_TREE_ICON_SRC } from './FigTreeIcon';
 import { LocationPermissionModal } from './LocationPermissionModal';
@@ -45,6 +45,7 @@ interface MapProps {
   isPinMode: boolean;
   onSaveLocation?: (lat: number, lng: number) => void;
   onCancelPinMode?: () => void;
+  onShowAbout?: () => void;
 }
 
 const ZoomAdjuster: React.FC<{ isPinMode: boolean; targetZoom: number }> = ({ isPinMode, targetZoom }) => {
@@ -130,6 +131,28 @@ const MapMoveTracker: React.FC<{
   return null;
 };
 
+// Component to track zoom level
+const ZoomTracker: React.FC<{
+  onZoomChange: (zoom: number) => void;
+}> = ({ onZoomChange }) => {
+  const map = useMap();
+
+  useEffect(() => {
+    const handleZoom = () => {
+      onZoomChange(map.getZoom());
+    };
+
+    map.on('zoomend', handleZoom);
+    handleZoom(); // Check initially
+
+    return () => {
+      map.off('zoomend', handleZoom);
+    };
+  }, [map, onZoomChange]);
+
+  return null;
+};
+
 // Component to capture map instance
 const MapInstanceCapture: React.FC<{
   onMapReady: (map: L.Map) => void;
@@ -162,7 +185,7 @@ const SaveLocationHandler: React.FC<{
   return null;
 };
 
-export const Map: React.FC<MapProps> = ({ figs, onFigClick, isPinMode, onSaveLocation, onCancelPinMode }) => {
+export const Map: React.FC<MapProps> = ({ figs, onFigClick, isPinMode, onSaveLocation, onCancelPinMode, onShowAbout }) => {
   // Default center: Split, Croatia
   const defaultCenter: [number, number] = [43.5081, 16.4402];
   const defaultZoom = 15; // Neighborhood level on initial load
@@ -174,9 +197,9 @@ export const Map: React.FC<MapProps> = ({ figs, onFigClick, isPinMode, onSaveLoc
   const [locationRequested, setLocationRequested] = useState(false);
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [locationDenied, setLocationDenied] = useState(false);
-  const [showRoute, setShowRoute] = useState(false);
-  const [closestFig, setClosestFig] = useState<FigLocation | null>(null);
   const routingControlRef = useRef<L.Routing.Control | null>(null);
+  const [isWatercolorMap, setIsWatercolorMap] = useState(true);
+  const [currentZoom, setCurrentZoom] = useState(defaultZoom);
 
   const getMapCenterRef = useRef<(() => { lat: number; lng: number }) | null>(null);
 
@@ -191,6 +214,19 @@ export const Map: React.FC<MapProps> = ({ figs, onFigClick, isPinMode, onSaveLoc
   const handleLocationFound = useCallback((lat: number, lng: number) => {
     setUserLocation({ lat, lng });
     setLocationRequested(true);
+  }, []);
+
+  const handleZoomChange = useCallback((zoom: number) => {
+    setCurrentZoom(zoom);
+
+    // Auto-switch map style based on zoom level
+    // Zoom >= 18 (top 2 levels): detailed map
+    // Zoom < 18: watercolor map
+    if (zoom >= 18) {
+      setIsWatercolorMap(false);
+    } else {
+      setIsWatercolorMap(true);
+    }
   }, []);
 
   const requestLocation = useCallback(() => {
@@ -231,76 +267,12 @@ export const Map: React.FC<MapProps> = ({ figs, onFigClick, isPinMode, onSaveLoc
     requestLocation();
   };
 
-  // Find closest fig to user location
-  const findClosestFig = useCallback((): FigLocation | null => {
-    if (!userLocation || figs.length === 0) return null;
-
-    const userLatLng = L.latLng(userLocation.lat, userLocation.lng);
-    let closest = figs[0];
-    let minDistance = userLatLng.distanceTo([closest.lat, closest.lng]);
-
-    figs.forEach(fig => {
-      const distance = userLatLng.distanceTo([fig.lat, fig.lng]);
-      if (distance < minDistance) {
-        minDistance = distance;
-        closest = fig;
-      }
-    });
-
-    return closest;
-  }, [userLocation, figs]);
-
-  // Show route to closest fig
-  const showDirectionsToClosest = useCallback(() => {
-    if (!mapInstance || !userLocation || figs.length === 0) {
-      alert('Lokacija nije dostupna ili nema smokvi na karti.');
-      return;
-    }
-
-    // Clear any existing route
-    if (routingControlRef.current) {
-      mapInstance.removeControl(routingControlRef.current);
-      routingControlRef.current = null;
-    }
-
-    const closest = findClosestFig();
-    if (!closest) return;
-
-    setClosestFig(closest);
-    setShowRoute(true);
-
-    // Create routing control with walking profile using GraphHopper
-    const routingControl = L.Routing.control({
-      waypoints: [
-        L.latLng(userLocation.lat, userLocation.lng),
-        L.latLng(closest.lat, closest.lng)
-      ],
-      router: new (L.Routing as any).OSRMv1({
-        serviceUrl: 'https://routing.openstreetmap.de/routed-foot/route/v1',
-      }),
-      routeWhileDragging: false,
-      addWaypoints: false,
-      draggableWaypoints: false,
-      fitSelectedRoutes: true,
-      showAlternatives: false,
-      lineOptions: {
-        styles: [{ color: '#8B6F47', opacity: 0.8, weight: 6 }],
-        extendToWaypoints: true,
-        missingRouteTolerance: 0
-      }
-    }).addTo(mapInstance);
-
-    routingControlRef.current = routingControl;
-  }, [mapInstance, userLocation, figs, findClosestFig]);
-
   // Clear route
   const clearRoute = useCallback(() => {
     if (routingControlRef.current && mapInstance) {
       mapInstance.removeControl(routingControlRef.current);
       routingControlRef.current = null;
     }
-    setShowRoute(false);
-    setClosestFig(null);
   }, [mapInstance]);
 
   // Show route to a specific fig
@@ -316,10 +288,7 @@ export const Map: React.FC<MapProps> = ({ figs, onFigClick, isPinMode, onSaveLoc
       routingControlRef.current = null;
     }
 
-    setClosestFig(fig);
-    setShowRoute(true);
-
-    // Create routing control with walking profile using GraphHopper
+    // Create routing control with walking profile
     const routingControl = L.Routing.control({
       waypoints: [
         L.latLng(userLocation.lat, userLocation.lng),
@@ -342,15 +311,6 @@ export const Map: React.FC<MapProps> = ({ figs, onFigClick, isPinMode, onSaveLoc
 
     routingControlRef.current = routingControl;
   }, [mapInstance, userLocation]);
-
-  // Toggle directions
-  const toggleDirections = useCallback(() => {
-    if (showRoute) {
-      clearRoute();
-    } else {
-      showDirectionsToClosest();
-    }
-  }, [showRoute, clearRoute, showDirectionsToClosest]);
 
   // Cleanup routing control on unmount
   useEffect(() => {
@@ -405,6 +365,16 @@ export const Map: React.FC<MapProps> = ({ figs, onFigClick, isPinMode, onSaveLoc
 
   return (
     <div className="map-container">
+      {onShowAbout && (
+        <button
+          className="rustic-button about-button"
+          onClick={onShowAbout}
+          title="O aplikaciji"
+        >
+          ℹ️
+        </button>
+      )}
+
       {isPinMode && (
         <div className="crosshair-overlay">
           <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -422,21 +392,10 @@ export const Map: React.FC<MapProps> = ({ figs, onFigClick, isPinMode, onSaveLoc
         <button
           className="locate-me-button"
           onClick={handleRecenterClick}
-          title="Pronađi moju lokaciju"
+          title="Lociraj moju lokaciju"
         >
           <Navigation size={20} />
-          <span>Pronađi Me</span>
-        </button>
-      )}
-
-      {userLocation && figs.length > 0 && (
-        <button
-          className="directions-button"
-          onClick={toggleDirections}
-          title={showRoute ? "Sakrij putokaz" : "Prikaži put do najbliže smokve"}
-        >
-          <MapPin size={20} />
-          <span>{showRoute ? 'Sakrij Put' : 'Najbliža Smokva'}</span>
+          <span>Lociraj Me</span>
         </button>
       )}
 
@@ -446,24 +405,50 @@ export const Map: React.FC<MapProps> = ({ figs, onFigClick, isPinMode, onSaveLoc
         style={{ height: '100%', width: '100%' }}
         zoomControl={true}
       >
-        {/* Retro/Minimal Watercolor-style tiles */}
-        <TileLayer
-          attribution='Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under <a href="http://www.openstreetmap.org/copyright">ODbL</a>.'
-          url={`https://tiles.stadiamaps.com/tiles/stamen_watercolor/{z}/{x}/{y}.jpg${import.meta.env.VITE_STADIA_MAPS_API_KEY ? `?api_key=${import.meta.env.VITE_STADIA_MAPS_API_KEY}` : ''}`}
-          className="rustic-tiles"
-        />
+        {isWatercolorMap ? (
+          <>
+            {/* Watercolor base layer for artistic look */}
+            <TileLayer
+              attribution='Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under <a href="http://www.openstreetmap.org/copyright">ODbL</a>.'
+              url={`https://tiles.stadiamaps.com/tiles/stamen_watercolor/{z}/{x}/{y}.jpg${import.meta.env.VITE_STADIA_MAPS_API_KEY ? `?api_key=${import.meta.env.VITE_STADIA_MAPS_API_KEY}` : ''}`}
+              className="rustic-tiles"
+              maxNativeZoom={18}
+              maxZoom={20}
+            />
 
-        {/* Label overlay with major streets only */}
-        <TileLayer
-          url={`https://tiles.stadiamaps.com/tiles/stamen_terrain_labels/{z}/{x}/{y}.png${import.meta.env.VITE_STADIA_MAPS_API_KEY ? `?api_key=${import.meta.env.VITE_STADIA_MAPS_API_KEY}` : ''}`}
-          className="label-tiles"
-        />
+            {/* Terrain lines overlay for topography detail */}
+            <TileLayer
+              url={`https://tiles.stadiamaps.com/tiles/stamen_terrain_lines/{z}/{x}/{y}.png${import.meta.env.VITE_STADIA_MAPS_API_KEY ? `?api_key=${import.meta.env.VITE_STADIA_MAPS_API_KEY}` : ''}`}
+              opacity={0.4}
+              maxNativeZoom={18}
+              maxZoom={20}
+            />
+
+            {/* Detailed labels overlay showing all streets, paths, and places */}
+            <TileLayer
+              url={`https://tiles.stadiamaps.com/tiles/stamen_terrain_labels/{z}/{x}/{y}.png${import.meta.env.VITE_STADIA_MAPS_API_KEY ? `?api_key=${import.meta.env.VITE_STADIA_MAPS_API_KEY}` : ''}`}
+              className="label-tiles"
+              maxNativeZoom={18}
+              maxZoom={20}
+            />
+          </>
+        ) : (
+          <>
+            {/* Standard OpenStreetMap tiles showing all details */}
+            <TileLayer
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              maxZoom={19}
+            />
+          </>
+        )}
 
         <MapInstanceCapture onMapReady={setMapInstance} />
         <LocationInitializer onLocationFound={handleLocationFound} />
         <ZoomAdjuster isPinMode={isPinMode} targetZoom={zoomForPlacement} />
         <SaveLocationHandler onGetCenter={handleGetCenter} />
         <MapMoveTracker userLocation={userLocation} onMapMoved={setHasMovedAway} />
+        <ZoomTracker onZoomChange={handleZoomChange} />
 
         {/* User location marker */}
         {userLocation && (

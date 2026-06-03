@@ -285,17 +285,8 @@ function App() {
         isPinMode={isPinMode}
         onSaveLocation={handleMapClick}
         onCancelPinMode={handleCancelPinMode}
+        onShowAbout={() => setShowAbout(true)}
       />
-
-      {user && (
-        <button
-          className="rustic-button about-button"
-          onClick={() => setShowAbout(true)}
-          title="O aplikaciji"
-        >
-          ℹ️
-        </button>
-      )}
 
       {user && !selectedPosition && (
         <div className="center-button-container">

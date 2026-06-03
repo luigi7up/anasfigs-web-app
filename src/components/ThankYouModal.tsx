@@ -20,6 +20,13 @@ export const ThankYouModal: React.FC<ThankYouModalProps> = ({ onClose, userName 
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        <button
+          className="modal-close-button"
+          onClick={onClose}
+          title="Zatvori"
+        >
+          ✕
+        </button>
         <div style={{
           fontFamily: 'Georgia, "Times New Roman", Times, serif',
           textAlign: 'center',

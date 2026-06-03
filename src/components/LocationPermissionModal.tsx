@@ -9,6 +9,13 @@ export const LocationPermissionModal: React.FC<LocationPermissionModalProps> = (
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        <button
+          className="modal-close-button"
+          onClick={onClose}
+          title="Zatvori"
+        >
+          ✕
+        </button>
         <h2 className="wooden-plaque">📍 Lokacija Potrebna</h2>
 
         <div style={{

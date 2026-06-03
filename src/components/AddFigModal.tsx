@@ -42,6 +42,13 @@ export const AddFigModal: React.FC<AddFigModalProps> = ({
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content modal-content--garland" onClick={(e) => e.stopPropagation()}>
+        <button
+          className="modal-close-button"
+          onClick={onClose}
+          title="Zatvori"
+        >
+          ✕
+        </button>
         <div className="modal-garland" aria-hidden="true">
           <img src="/illustrations/02_garland_top.svg" alt="" />
         </div>

@@ -275,32 +275,46 @@ body {
 /* About/Info button */
 .about-button {
   position: absolute;
-  bottom: 24px;
-  left: 24px;
+  top: 20px;
+  right: 20px;
   z-index: 500;
-  width: 56px;
-  height: 56px;
+
+  width: 48px;
+  height: 48px;
   padding: 0;
-  font-size: 32px;
-  border-radius: 50%;
+
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #7C9660;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  border: 3px solid #607A46;
+
+  font-size: 24px;
+  background-color: white;
+  color: #7C9660;
+  border: 2px solid #7C9660;
+  border-radius: 50%;
+
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  animation: slideIn 0.3s ease;
 }
 
 .about-button:hover {
-  background-color: #8FAA70;
+  background-color: #7C9660;
+  color: white;
   transform: translateY(-2px) scale(1.05);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 6px 16px rgba(124, 150, 96, 0.4);
+}
+
+.about-button:active {
+  transform: translateY(0) scale(1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 /* Recenter button */
 .locate-me-button {
   position: absolute;
-  bottom: 140px;
+  bottom: 240px;
   right: 20px;
   z-index: 500;
 
@@ -347,10 +361,10 @@ body {
   }
 }
 
-/* Directions button */
-.directions-button {
+/* Map style toggle button */
+.map-style-toggle {
   position: absolute;
-  bottom: 80px;
+  bottom: 180px;
   right: 20px;
   z-index: 500;
 
@@ -374,14 +388,13 @@ body {
   animation: slideIn 0.3s ease;
 }
 
-.directions-button:hover {
-  background-color: #8B6F47;
-  color: white;
+.map-style-toggle:hover {
+  background-color: #F5EFE0;
   transform: translateY(-2px);
   box-shadow: 0 6px 16px rgba(139, 111, 71, 0.4);
 }
 
-.directions-button:active {
+.map-style-toggle:active {
   transform: translateY(0);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
@@ -866,53 +879,25 @@ body {
   }
 
   .about-button {
-    top: 120px;
-    left: auto;
+    top: 20px;
     right: 16px;
-    bottom: auto;
-    width: 48px;
-    height: 48px;
-    font-size: 24px;
+    width: 44px;
+    height: 44px;
+    font-size: 20px;
   }
 
   .locate-me-button {
-    top: 180px;
+    bottom: 240px;
     right: 16px;
-    bottom: auto;
     font-size: 14px;
     padding: 10px 16px;
   }
 
-  .locate-me-button span {
-    display: none;
-  }
-
-  .locate-me-button {
-    width: 48px;
-    height: 48px;
-    padding: 0;
-    justify-content: center;
-    border-radius: 50%;
-  }
-
-  .directions-button {
-    top: 240px;
+  .map-style-toggle {
+    bottom: 180px;
     right: 16px;
-    bottom: auto;
     font-size: 14px;
     padding: 10px 16px;
-  }
-
-  .directions-button span {
-    display: none;
-  }
-
-  .directions-button {
-    width: 48px;
-    height: 48px;
-    padding: 0;
-    justify-content: center;
-    border-radius: 50%;
   }
 
   .app-title {

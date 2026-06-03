@@ -36,6 +36,13 @@ export const FigDetailsModal: React.FC<FigDetailsModalProps> = ({ fig, onClose }
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        <button
+          className="modal-close-button"
+          onClick={onClose}
+          title="Zatvori"
+        >
+          ✕
+        </button>
         <h2 className="wooden-plaque">{fig.name} 🌳</h2>
 
         {fig.note && (
@@ -71,8 +78,8 @@ export const FigDetailsModal: React.FC<FigDetailsModalProps> = ({ fig, onClose }
           </div>
         </div>
 
-        <div className="button-group button-group--vertical">
-          {hasUserLocation && (
+        {hasUserLocation && (
+          <div className="button-group" style={{ marginTop: '20px' }}>
             <button
               className="rustic-button"
               style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
@@ -81,15 +88,8 @@ export const FigDetailsModal: React.FC<FigDetailsModalProps> = ({ fig, onClose }
               <Navigation size={20} />
               Kako do smokve
             </button>
-          )}
-          <button
-            className="rustic-button button-secondary"
-            style={{ width: '100%' }}
-            onClick={onClose}
-          >
-            Zatvori
-          </button>
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );

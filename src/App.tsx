@@ -6,6 +6,7 @@ import { FigDetailsModal } from './components/FigDetailsModal';
 import { AboutModal } from './components/AboutModal';
 import { ThankYouModal } from './components/ThankYouModal';
 import { FigListModal } from './components/FigListModal';
+import { BirthdayModal } from './components/BirthdayModal';
 import { Map } from './components/Map';
 import { FigTreeIcon } from './components/FigTreeIcon';
 import { supabase } from './supabase';
@@ -26,6 +27,7 @@ function App() {
   const [showAbout, setShowAbout] = useState(false);
   const [showThankYou, setShowThankYou] = useState(false);
   const [showFigList, setShowFigList] = useState(false);
+  const [showBirthday, setShowBirthday] = useState(false);
   const figCountRef = useRef<HTMLSpanElement>(null);
   const previousFigCount = useRef<number>(0);
   const [animationKey, setAnimationKey] = useState(0);
@@ -41,6 +43,34 @@ function App() {
       }
     }
     setLoading(false);
+  }, []);
+
+  // Check for Ana's birthday and show modal after 3 seconds
+  useEffect(() => {
+    const checkBirthday = () => {
+      // Check for query param for testing
+      const urlParams = new URLSearchParams(window.location.search);
+      const birthdayParam = urlParams.get('birthday');
+
+      if (birthdayParam === 'true') {
+        return true;
+      }
+
+      // Check if it's June 5th or 6th
+      const now = new Date();
+      const month = now.getMonth() + 1; // 0-indexed, so +1 for June = 6
+      const day = now.getDate();
+
+      return month === 6 && (day === 5 || day === 6);
+    };
+
+    if (checkBirthday()) {
+      const timer = setTimeout(() => {
+        setShowBirthday(true);
+      }, 3000);
+
+      return () => clearTimeout(timer);
+    }
   }, []);
 
   // Load figs from Supabase
@@ -367,6 +397,10 @@ function App() {
           onClose={() => setShowFigList(false)}
           onFigSelect={(fig) => setSelectedFig(fig)}
         />
+      )}
+
+      {showBirthday && (
+        <BirthdayModal onClose={() => setShowBirthday(false)} figs={figs} />
       )}
     </>
   );
